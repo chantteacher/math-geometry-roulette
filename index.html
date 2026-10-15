@@ -125,6 +125,32 @@ textarea{width:100%;box-sizing:border-box;min-height:96px;resize:vertical;font:1
 .confirm p{margin:0;font-size:14px}
 .card > p.small{margin:0}
 .tag{font:700 12px var(--body);letter-spacing:0;text-transform:none;color:var(--mark)}
+ol.race{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;max-height:min(58vh,520px);overflow:auto}
+.race li{display:grid;grid-template-columns:40px 12px minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 8px;border-radius:8px;font-size:14px;background:rgba(255,255,255,.03)}
+.race .rk{font:700 14px var(--mono);text-align:right;color:var(--ink)}
+.race .dot{width:12px;height:12px;border-radius:50%}
+.race .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.race .tm{font:500 12px var(--mono);color:var(--muted)}
+.race li.run{opacity:.55}
+.race li.target{box-shadow:inset 0 0 0 1.5px var(--mark);background:rgba(255,210,63,.08)}
+.race li.win{background:linear-gradient(90deg,rgba(255,61,129,.4),rgba(139,92,255,.3));box-shadow:none;opacity:1}
+.hright{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+@media (max-width:860px){.hright{align-items:flex-start}}
+.acct{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.acct-status{font:500 13px var(--body);color:var(--muted)}
+.acct-status b{color:var(--ink)}
+.acct-status .bad{color:var(--red)}
+.acct-btn{font:700 13px var(--body);color:var(--on-accent);background:linear-gradient(135deg,var(--accent),#8fb6ff);border:0;border-radius:999px;padding:7px 18px;cursor:pointer;box-shadow:0 0 16px rgba(56,225,255,.35)}
+.acct-btn.out{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(5,7,20,.72);backdrop-filter:blur(5px);
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal-card{width:min(420px,100%);max-height:100%;overflow:auto;background:linear-gradient(160deg,#1c2457,#11163a);border:1.5px solid var(--accent);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 40px rgba(56,225,255,.3),0 20px 50px rgba(0,0,0,.5)}
+.modal-card h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0;color:#fff}
+#login-fields,#login-off{display:flex;flex-direction:column;gap:8px}
+#login-fields p,#login-off p{margin:0}
+.modal-card input[type=text],.modal-card input[type=password]{font:600 16px var(--body);padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+.modal-card input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(56,225,255,.25)}
+.confirm.info{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
 .link{font:600 12px var(--body);color:var(--muted);background:none;border:0;cursor:pointer;text-decoration:underline;padding:0;letter-spacing:0;text-transform:none}
 .check{display:flex;gap:8px;align-items:center;font-size:14px}
 .check input{width:18px;height:18px;accent-color:var(--accent)}
@@ -150,13 +176,45 @@ details summary{cursor:pointer;font-size:14px;font-weight:500}
       <div class="eyebrow"><i></i>Geometry Class · <span id="cls-label">1반</span> · 오늘의 발표자는?</div>
       <h1>기하 수업 발표자 뽑기</h1>
     </div>
+    <div class="hright">
+    <div class="acct">
+      <span class="acct-status" id="acct-status"></span>
+      <button class="acct-btn" id="acct-btn" type="button">로그인</button>
+    </div>
     <div class="tabs" role="tablist" aria-label="게임 선택">
       <button class="tab" role="tab" id="tab-sphere" aria-selected="true" data-mode="sphere">구 룰렛</button>
       <button class="tab" role="tab" id="tab-dice" aria-selected="false" data-mode="dice">좌표 주사위</button>
       <button class="tab" role="tab" id="tab-marble" aria-selected="false" data-mode="marble">구슬 레이스</button>
       <button class="tab" role="tab" id="tab-pool" aria-selected="false" data-mode="pool">벡터 당구</button>
     </div>
+    </div>
   </header>
+  <div class="modal" id="login" hidden>
+    <form class="modal-card" id="login-form" role="dialog" aria-modal="true" aria-labelledby="login-title" novalidate>
+      <h2 id="login-title">내 계정</h2>
+      <div id="login-fields">
+        <p class="small">아이디와 비밀번호로 반 명단과 발표 기록을 저장해요. 다른 기기에서도 같은 아이디로 로그인하면 그대로 불러와요.</p>
+        <label for="lg-id">아이디</label>
+        <input id="lg-id" type="text" autocomplete="username" maxlength="30" spellcheck="false" autocapitalize="off">
+        <label for="lg-pw">비밀번호</label>
+        <input id="lg-pw" type="password" autocomplete="current-password" maxlength="64">
+        <label class="check"><input type="checkbox" id="lg-keep"> 이 기기에서 로그인 유지 (내 기기에서만 켜 주세요)</label>
+        <p class="err" id="lg-err" hidden></p>
+        <p class="small" id="lg-busy" hidden>확인하는 중이에요…</p>
+        <div class="row">
+          <button class="btn primary" id="lg-login" type="submit">로그인</button>
+          <button class="btn" id="lg-signup" type="button">새 계정 만들기</button>
+          <button class="btn" id="lg-close" type="button">닫기</button>
+        </div>
+        <p class="small">새 계정을 만들면 지금 화면의 반 목록이 그 계정에 저장돼요. 비밀번호는 어디에도 저장되지 않아서, 잊어버리면 기록을 되찾을 수 없어요.</p>
+      </div>
+      <div id="login-off" hidden>
+        <p>로그인 서버가 아직 연결되지 않았어요.</p>
+        <p class="small">페이지 파일 안의 <code>GAS_URL</code> 자리에 구글 앱스 스크립트 웹 앱 주소를 넣으면 로그인을 쓸 수 있어요.</p>
+        <div class="row"><button class="btn" id="lg-close2" type="button">닫기</button></div>
+      </div>
+    </form>
+  </div>
 
   <main class="layout">
     <section class="stage-wrap">
@@ -201,6 +259,10 @@ details summary{cursor:pointer;font-size:14px;font-weight:500}
     </section>
 
     <aside class="side">
+      <div class="card" id="race-card" hidden>
+        <h2>실시간 순위 <span class="tag" id="race-sum"></span></h2>
+        <ol class="race" id="race"></ol>
+      </div>
       <div class="card">
         <h2>반 선택</h2>
         <div class="clsrow">
@@ -226,7 +288,7 @@ details summary{cursor:pointer;font-size:14px;font-weight:500}
             <button class="btn" id="cls-del-cancel" type="button">취소</button>
           </div>
         </div>
-        <p class="small">명단과 발표 기록은 이 기기의 이 브라우저에 반별로 저장돼요.</p>
+        <p class="small" id="cls-note"></p>
       </div>
       <div class="card">
         <h2>학생 명단 <span class="tag" id="cls-tag"></span></h2>
@@ -333,7 +395,7 @@ function renderRule(){
   }else if(state.mode==='pool'){
     $('#rule').innerHTML=`당구대 칸마다 학생이 있어요. 시작 → <b>방향 고정</b>으로 방향 <b>d</b>를 정하고, 큐대가 앞뒤로 움직일 때 <b>샷!</b>을 눌러 속도 <code>v = |v|d</code>의 크기를 정해요. 많이 당길수록 |v|가 커서 멀리 가요. 쿠션에서는 <code>v′ = v − 2(v·n)n</code>으로 반사되고, 공이 멈춘 칸의 학생이 발표해요.${key}`;
   }else if(state.mode==='marble'){
-    $('#rule').innerHTML=`공이 핀에 튕기고 <b>↑ 범퍼</b>에서 튀어 오르며 내려와요. 고른 순위로 결승선에 들어온 공의 학생이 발표해요. 노란 테두리가 지금 그 순위에 있는 공이에요. 레이스 중에 <b>일시정지</b>로 잠깐 멈출 수 있어요.${key}`;
+    $('#rule').innerHTML=`공이 핀에 튕기고 <b>↑ 범퍼</b>에서 튀어 오르며 내려와요. 고른 순위로 결승선에 들어온 공의 학생이 발표해요. <b>마지막 N명</b>을 고르면 끝까지 달려서 꼴찌 쪽 N명이 함께 발표해요. 순위는 오른쪽 표에 실시간으로 떠요. 노란 테두리가 지금 그 순위에 있는 공이에요. 레이스 중에 <b>일시정지</b>로 잠깐 멈출 수 있어요.${key}`;
   }else{const {a,b,c}=dimsG;
     $('#rule').innerHTML=`${a}×${b}×${c} 격자점에 번호가 배정돼요. 시작을 누르면 <code>x</code>, <code>y</code>, <code>z</code>가 돌아가요. 각 좌표의 <b>멈춤</b>을 원하는 순서로 눌러 하나씩 멈추면 점 P가 당첨돼요. 큰 버튼은 x → y → z 순서로 멈춰요.${key}`}
 }
@@ -347,6 +409,7 @@ const uid=()=>Math.random().toString(36).slice(2,10);
 const curCls=()=>state.classes.find(k=>k.id===state.cur);
 const rosterSize=k=>{const n=(k.names||'').split(/[,，、\n]/).filter(x=>x.trim()).length;return n||+k.count||35};
 function save(){const k=curCls();if(k){k.history=state.history;k.permS=state.permS;k.permG=state.permG}
+  if(typeof acct!=='undefined'&&acct){const d=store.get()||{};store.set({...d,exclude:state.exclude,mode:state.mode,rank:state.rank});cloudSave();return}
   store.set({v:2,classes:state.classes,cur:state.cur,exclude:state.exclude,mode:state.mode,rank:state.rank})}
 function renderClasses(){const sel=$('#cls'),k=curCls();
   sel.innerHTML=state.classes.map(c=>`<option value="${c.id}">${esc(c.name)} · ${rosterSize(c)}명</option>`).join('');
@@ -534,16 +597,16 @@ const mb={balls:[],pegs:[],segs:[],spins:[],bumps:[],cam:0,running:false,t:0,ord
 function closest(px,py,ax,ay,bx,by){const ex=bx-ax,ey=by-ay,t=clamp(((px-ax)*ex+(py-ay)*ey)/(ex*ex+ey*ey),0,1);return [ax+ex*t,ay+ey*t]}
 (function board(){
   mb.bumps=[{x:22,y:58,r:3.5,f:0},{x:50,y:112,r:3.5,f:0},{x:74,y:88,r:4,f:0},{x:24,y:172,r:4,f:0},{x:56,y:238,r:4.5,f:0},
-    {x:38.5,y:321.5,r:2.2,f:0},{x:61.5,y:321.5,r:2.2,f:0}]; // small kickers at the funnel mouth
+    {x:38.2,y:327.6,r:2.2,f:0},{x:61.8,y:327.6,r:2.2,f:0}]; // small kickers at the funnel mouth
   mb.segs=[{a:[0,104],b:[30,114]},{a:[100,150],b:[68,160]},{a:[0,212],b:[26,220]},
     // final funnel: two slanted walls narrowing to a short chute just above the finish line
     // funnel: slanted walls, a short upright bowl where the last spinner guards the mouth, then a narrow chute
-    {a:[0,256],b:[34,300]},{a:[100,256],b:[66,300]},{a:[34,300],b:[34,318]},{a:[66,300],b:[66,318]},
-    {a:[34,318],b:[45.5,330]},{a:[66,318],b:[54.5,330]},{a:[45.5,330],b:[45.5,347]},{a:[54.5,330],b:[54.5,347]}];
+    {a:[0,256],b:[34,300]},{a:[100,256],b:[66,300]},{a:[34,300],b:[34,324]},{a:[66,300],b:[66,324]},
+    {a:[34,324],b:[45.5,334]},{a:[66,324],b:[54.5,334]},{a:[45.5,334],b:[45.5,347]},{a:[54.5,334],b:[54.5,347]}];
   mb.spins=[{x:34,y:132,L:13,ang:0,w:2.4},{x:70,y:196,L:13,ang:1,w:-2.8},
     // spinners inside the funnel: one mid-way, one guarding the mouth so balls can get flung back out
     {x:66,y:62,L:10,ang:1.2,w:-2.6},
-    {x:38,y:272,L:9,ang:.5,w:3},{x:64,y:280,L:8,ang:2,w:-3.2},{x:50,y:314,L:10,ang:0,w:6}];
+    {x:38,y:272,L:9,ang:.5,w:3},{x:64,y:280,L:8,ang:2,w:-3.2},{x:50,y:320,L:9.5,ang:0,w:6}];
   const near=(x,y)=>mb.bumps.some(b=>Math.hypot(x-b.x,y-b.y)<b.r+5)||mb.spins.some(s=>Math.hypot(x-s.x,y-s.y)<s.L+4)||
     mb.segs.some(s=>{const q=closest(x,y,s.a[0],s.a[1],s.b[0],s.b[1]);return Math.hypot(x-q[0],y-q[1])<5});
   let row=0;for(let y=34;y<=250;y+=12,row++){for(let x=(row%2?11:5.5);x<MW-3;x+=11){if(!near(x,y))mb.pegs.push({x,y,r:1.3})}}
@@ -553,7 +616,7 @@ function lineup(){
   const el=eligibleIdx().sort((a,b)=>state.permS[a]-state.permS[b]);
   mb.balls=el.map((i,j)=>{const cols=9,row=Math.floor(j/cols),col=j%cols;
     return {i,x:9+col*10.2+(row%2?4:0)+(Math.random()-.5)*.6,y:6+row*5,vx:0,vy:0,idle:0,done:false,rank:0,col:ballColor(i)}});
-  mb.order=[];mb.t=0;mb.cam=0;mb.focus=null;mb.follow=null;
+  mb.order=[];mb.t=0;mb.cam=0;mb.focus=null;mb.follow=null;mb.wins=null;if(typeof renderRace==='function')renderRace();
 }
 function hit(b,cx,cy,r,e,svx,svy,kick,o){
   const dx=b.x-cx,dy=b.y-cy,m=r+BR,d2=dx*dx+dy*dy;if(d2>=m*m)return;
@@ -590,10 +653,11 @@ function physics(h){
       b.x=4+(r%16)*6.1;b.y=FIN+7+Math.floor(r/16)*4.6;b.vx=b.vy=0}
   }
 }
-function rankTarget(){const n=mb.balls.length;return state.rank==='last'?n:Math.min(+state.rank||1,n)}
+const lastK=()=>{const m=/^last(\d+)$/.exec(state.rank||'');return m?+m[1]:0};
+function rankTarget(){const n=mb.balls.length;return state.rank==='last'||lastK()?n:Math.min(+state.rank||1,n)}
 function followBall(){
   const live=mb.balls.filter(b=>!b.done);if(!live.length)return null;
-  if(state.rank==='last')return live.reduce((a,b)=>b.y<a.y?b:a);
+  if(state.rank==='last'||lastK())return live.reduce((a,b)=>b.y<a.y?b:a);
   live.sort((a,b)=>b.y-a.y);const need=rankTarget()-mb.order.length;return live[clamp(need,1,live.length)-1];
 }
 function stepMarble(dt){
@@ -601,9 +665,16 @@ function stepMarble(dt){
   if(mb.running&&mb.paused)return; // frozen: the camera stays wherever the teacher drags it
   if(mb.running){
     mb.t+=dt;const n=Math.ceil(dt/.004),h=dt/n;for(let k=0;k<n;k++)physics(h);
+    mb.rt=(mb.rt||0)+dt;if(mb.rt>.2){mb.rt=0;renderRace()}
     const k=rankTarget();
-    if(mb.order.length>=k){const w=mb.order[k-1],last=state.rank==='last';
-      mb.running=false;mb.follow=null;mb.focus=w.y;winner=w.i;setGo('도착!','',true);
+    if(lastK()&&mb.order.length>=k){const K=Math.min(lastK(),k),ws=mb.order.slice(k-K);
+      mb.running=false;mb.follow=null;mb.focus=ws[0].y;mb.wins=new Set(ws.map(b=>b.i));setGo('도착!','',true);renderRace();
+      setTimeout(()=>resultMulti(ws.map(b=>b.i),'구슬 레이스',ws.map(b=>`${b.rank}등`),[
+        `<span><b>마지막으로 들어온 ${K}명</b></span>`,
+        `<span>${ws.map(b=>`${b.rank}등 ${esc(students[b.i].name||students[b.i].n+'번')}`).join(' · ')}</span>`,
+        `<span>참가 ${mb.balls.length}명 · 전체 순위는 오른쪽 표에 있어요</span>`]),450)}
+    else if(mb.order.length>=k){const w=mb.order[k-1],last=state.rank==='last';
+      mb.running=false;mb.follow=null;mb.focus=w.y;winner=w.i;setGo('도착!','',true);renderRace();
       const label=last?'꼴찌':`${k}번째`;
       setTimeout(()=>result(w.i,'구슬 레이스',`${label}로 도착`,[
         `<span><b>${label}로 결승선 통과</b></span>`,
@@ -645,7 +716,7 @@ function drawMarble(c){
   // balls
   const fs=Math.round(clamp(s*1.55,10,15));
   for(const b of mb.balls){if(!vis(b.y))continue;const x=X(b.x),y=Y(b.y),r=BR*s;
-    const isW=!mb.running&&b.i===winner,isF=b===mb.follow;
+    const isW=!mb.running&&(b.i===winner||!!(mb.wins&&mb.wins.has(b.i))),isF=b===mb.follow;
     if(isW||isF){ctx.strokeStyle=isW?c.accent:c.mark;ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,r+5,0,TAU);ctx.stroke()}
     ctx.fillStyle=b.col;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();ctx.strokeStyle=c.ink;ctx.lineWidth=1;ctx.stroke();
     const st=students[b.i],lab=st.name||String(st.n);
@@ -864,8 +935,10 @@ function setGo(label,cls,disabled){const g=$('#go');g.textContent=label;g.classL
 
 function renderRank(){
   const sel=$('#rank'),n=eligibleIdx().length;let v=String(state.rank||'1');
-  if(v!=='last'&&!(+v>=1&&+v<=n))v=n?'1':'last';
-  sel.innerHTML=Array.from({length:n},(_,k)=>`<option value="${k+1}">${k+1}번째 공</option>`).join('')+'<option value="last">꼴찌 공</option>';
+  const ks=[2,3,4,5,6].filter(k=>k<n);
+  if(v!=='last'&&!(+v>=1&&+v<=n)&&!ks.some(k=>v==='last'+k))v=n?'1':'last';
+  sel.innerHTML='<optgroup label="한 명">'+Array.from({length:n},(_,k)=>`<option value="${k+1}">${k+1}번째 공</option>`).join('')+'<option value="last">꼴찌 공</option></optgroup>'
+    +(ks.length?'<optgroup label="여러 명">'+ks.map(k=>`<option value="last${k}">마지막 ${k}명</option>`).join('')+'</optgroup>':'');
   sel.value=v;state.rank=v;
 }
 function toggle(){
@@ -923,6 +996,29 @@ function result(i,mode,coord,lines){
   say(`${s.name||s.n+'번'} 학생이 발표자예요. ${coord}`);
   setBusy(false);setGo('다시 시작');renderRank();
 }
+function resultMulti(ids,mode,coords,lines){
+  const ss=ids.map(i=>students[i]);
+  $('#r-num').textContent=`${ids.length}명`;$('#r-name').textContent=ss.map(s=>s.name||`${s.n}번`).join(', ');$('#r-lines').innerHTML=lines.join('');
+  $('#result').hidden=false;
+  ss.forEach((s,j)=>state.history.push({n:s.n,name:s.name,mode,coord:coords[j]}));renderHist();save();
+  say(`${ss.map(s=>s.name||s.n+'번').join(', ')} 학생이 발표자예요.`);
+  setBusy(false);setGo('다시 시작');renderRank();
+}
+/* live ranking beside the marble track: finished balls in order, then the rest by how far down they are */
+function renderRace(){
+  const el=$('#race');if(!el||state.mode!=='marble')return;
+  const N=mb.balls.length,K=lastK(),tgt=state.rank==='last'?N:K?0:Math.min(+state.rank||1,N);
+  const isT=r=>K?r>N-K:r===tgt;
+  const run=mb.balls.filter(b=>!b.done).sort((a,b)=>b.y-a.y);
+  const row=(b,r,fin)=>{const s=students[b.i],cls=[fin?'fin':'run',isT(r)?'target':'',mb.wins&&mb.wins.has(b.i)||(!mb.running&&b.i===winner&&fin)?'win':''].join(' ');
+    const extra=fin?`${b.ft.toFixed(1)}초`:`${Math.round(clamp(b.y/FIN,0,1)*100)}%`;
+    return `<li class="${cls}"><span class="rk">${fin?r:'('+r+')'}</span><span class="dot" style="background:${b.col}"></span><span class="nm">${esc(s.name||s.n+'번')}</span><span class="tm">${extra}</span></li>`};
+  el.innerHTML=mb.order.map((b,j)=>row(b,j+1,true)).join('')+run.map((b,j)=>row(b,mb.order.length+j+1,false)).join('');
+  $('#race-sum').textContent=`도착 ${mb.order.length} / ${N}`;
+  // keep the interesting rows in view inside the list without scrolling the page
+  const focus=!mb.running?el.querySelector('li.win'):el.querySelectorAll('li.fin')[mb.order.length-1];
+  if(focus){const top=focus.offsetTop-el.offsetTop,h=el.clientHeight;if(top<el.scrollTop||top>el.scrollTop+h-60)el.scrollTop=Math.max(0,top-h*.35)}
+}
 function say(t,show){$('#live').textContent=t;if(show){$('#r-num').textContent='끝';$('#r-name').textContent='모두 발표했어요';
   $('#r-lines').innerHTML='<span>기록을 지우면 처음부터 다시 뽑아요.</span>';$('#result').hidden=false}}
 function updateChips(){
@@ -957,7 +1053,7 @@ function shuffle(){
 function setMode(m){
   state.mode=m;$('#result').hidden=true;winner=-1;cur=-1;stamp=null;
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.mode===m));
-  $('#chips').hidden=m!=='dice';$('#map-card').hidden=m!=='dice';$('#rankbox').hidden=m!=='marble';
+  $('#chips').hidden=m!=='dice';$('#map-card').hidden=m!=='dice';$('#rankbox').hidden=m!=='marble';$('#race-card').hidden=m!=='marble';
   $('#hint').textContent=m==='pool'?'':m==='marble'?'드래그하면 위아래로 볼 수 있어요':m==='sphere'?'드래그: 구 돌리기 · ＋/－ 또는 Ctrl+휠: 확대·축소':'드래그: 회전 · ＋/－ 또는 Ctrl+휠: 확대·축소';
   if(m==='marble'){renderRank();lineup()}
   setGo('시작');
@@ -989,7 +1085,7 @@ $('#cls-del-ok').addEventListener('click',()=>{const name=curCls().name;state.cl
 const refreshMarble=()=>{renderRank();if(state.mode==='marble'&&!busy)lineup()};
 $('#exclude').addEventListener('change',e=>{state.exclude=e.target.checked;refreshMarble();save()});
 $('#clear').addEventListener('click',()=>{if(busy)return;state.history=[];renderHist();save();$('#result').hidden=true;winner=-1;stamp=null;refreshMarble()});
-$('#rank').addEventListener('change',e=>{state.rank=e.target.value;save()});
+$('#rank').addEventListener('change',e=>{state.rank=e.target.value;save();renderRace()});
 const zoomBy=f=>{view.zoom=clamp(view.zoom*f,.5,3.2)};
 ['cx','cy','cz'].forEach((id,k)=>$('#'+id).addEventListener('click',()=>stopAxis(k)));
 $('#snd').addEventListener('click',()=>{soundOn=!soundOn;$('#snd').textContent=soundOn?'소리 켜짐':'소리 꺼짐';if(soundOn){audio();knock('wall',.6)}});
@@ -1012,6 +1108,125 @@ cv.addEventListener('pointermove',e=>{if(pointers.has(e.pointerId))pointers.set(
   view.yaw+=(e.clientX-drag.x)*.008;view.pitch=clamp(view.pitch+(e.clientY-drag.y)*.008,-1.5,1.5);drag={x:e.clientX,y:e.clientY}});
 const endDrag=e=>{pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(!pointers.size)drag=null};cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
 
+/* ---------- account: id + password vault ----------
+   Where the vault lives: a Google Apps Script web app when GAS_URL is set (GitHub Pages and other sites),
+   otherwise this artifact's db on claude.ai. The roster is encrypted in the browser with a key made from
+   the id and password; the server only keeps ciphertext plus a hash of a login token derived from the same password. */
+const GAS_URL='https://script.google.com/macros/s/AKfycbxx9jHE_DFXIwTQRBc2GjhgwVri6tzw9qwzuFG-pR9rcvlmC5_G8GNdi_8EavKjaWuP/exec'; // ← 구글 앱스 스크립트 웹 앱 주소(https://script.google.com/macros/s/.../exec)를 여기에 붙여 넣으세요
+let acct=null,backend=null,backendTried=false,saveTimer=null;
+const ACCT_KEY='space-picker-acct';
+const te=new TextEncoder(),td=new TextDecoder();
+function toB64(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const hexOf=buf=>[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+const normId=id=>id.trim().toLowerCase();
+async function vaultKey(id){return hexOf(await crypto.subtle.digest('SHA-256',te.encode('geo-picker:'+id))).slice(0,40)}
+async function deriveCreds(id,pw,salt){
+  const base=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveBits']);
+  const bits=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:new Uint8Array([...salt,...te.encode(id)]),iterations:200000,hash:'SHA-256'},base,512));
+  return {key:await crypto.subtle.importKey('raw',bits.slice(0,32),{name:'AES-GCM'},true,['encrypt','decrypt']),token:hexOf(bits.slice(32))};
+}
+async function seal(key,obj){const iv=crypto.getRandomValues(new Uint8Array(12));
+  return {iv:toB64(iv),ct:toB64(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(JSON.stringify(obj))))}}
+async function unseal(key,v){return JSON.parse(td.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(v.iv)},key,fromB64(v.ct))))}
+async function sha256hex(s){return hexOf(await crypto.subtle.digest('SHA-256',te.encode(s)))}
+class ApiError extends Error{constructor(code){super(code);this.code=code}}
+
+/* both backends answer the same four calls: salt, create, get, set */
+function gasBackend(url){
+  const call=async q=>{let r;try{r=await fetch(url,{method:'POST',body:JSON.stringify(q)})}catch(e){throw new ApiError('network')}
+    let j;try{j=await r.json()}catch(e){throw new ApiError('server')}if(!j.ok)throw new ApiError(j.error||'server');return j};
+  return {kind:'gas',salt:k=>call({action:'salt',key:k}),create:(k,salt,token,v)=>call({action:'create',key:k,salt,token,...v}),
+    get:(k,token)=>call({action:'get',key:k,token}),set:(k,token,v)=>call({action:'set',key:k,token,...v})};
+}
+function dbBackend(db){
+  const ref=k=>db.doc('vaults/'+k);
+  const load=async(k,token)=>{const s=await ref(k).get();if(!s.exists)throw new ApiError('not_found');const d=s.data();
+    if(d.auth!==await sha256hex(token))throw new ApiError('auth');return d};
+  const wrap=f=>async(...a)=>{try{return await f(...a)}catch(e){if(e instanceof ApiError)throw e;throw new ApiError(e&&e.code==='invalid_argument'?'forbidden':'network')}};
+  return {kind:'db',
+    salt:wrap(async k=>{const s=await ref(k).get();return {exists:s.exists,salt:s.exists?s.data().salt:null}}),
+    create:wrap(async(k,salt,token,v)=>{const s=await ref(k).get();if(s.exists)throw new ApiError('exists');await ref(k).set({salt,auth:await sha256hex(token),...v,at:Date.now()});return {ok:true}}),
+    get:wrap(async(k,token)=>{const d=await load(k,token);return {iv:d.iv,ct:d.ct}}),
+    set:wrap(async(k,token,v)=>{const d=await load(k,token);await ref(k).set({salt:d.salt,auth:d.auth,...v,at:Date.now()});return {ok:true}})};
+}
+async function getBackend(){if(backend||backendTried)return backend;backendTried=true;
+  if(GAS_URL){backend=gasBackend(GAS_URL);return backend}
+  try{if(window.claude&&typeof window.claude.use==='function'){const db=await window.claude.use('db');if(db)backend=dbBackend(db)}}catch(e){}
+  return backend}
+const vaultData=()=>({classes:state.classes,cur:state.cur});
+function validClasses(c){return Array.isArray(c)&&c.length&&c.every(k=>k&&typeof k.name==='string'&&typeof k.id==='string')}
+const errText={exists:'이미 쓰고 있는 아이디예요. 다른 아이디를 써 주세요.',not_found:'등록되지 않은 아이디예요. 처음이면 새 계정 만들기를 눌러 주세요.',
+  auth:'비밀번호가 맞지 않아요.',forbidden:'이 링크에서는 계정을 저장할 권한이 없어요. 링크를 공유한 선생님께 참여자 권한을 요청해 주세요.',
+  network:'서버에 연결하지 못했어요. 인터넷 연결과 서버 주소를 확인해 주세요.',server:'서버에서 오류가 났어요. 잠시 뒤 다시 시도해 주세요.'};
+
+function renderAcct(status){
+  const st=$('#acct-status'),btn=$('#acct-btn');
+  if(acct){st.innerHTML=`<b>${esc(acct.id)}</b> 님 · <span id="acct-sync">${status||'저장됨'}</span>`;btn.textContent='로그아웃';btn.classList.add('out');
+    $('#cls-note').textContent=`아이디 ${acct.id}에 저장돼요. 다른 기기에서도 같은 아이디로 로그인하면 그대로 불러와요.`}
+  else{st.textContent='';btn.textContent='로그인';btn.classList.remove('out');
+    $('#cls-note').textContent='로그인하지 않으면 이 기기의 이 브라우저에만 저장돼요. 로그인하면 어느 기기에서든 같은 기록을 써요.'}
+}
+function setSync(t,bad){const el=$('#acct-sync');if(el){el.textContent=t;el.classList.toggle('bad',!!bad)}}
+function cloudSave(){if(!acct)return;clearTimeout(saveTimer);setSync('저장 중…');saveTimer=setTimeout(cloudFlush,1200)}
+async function cloudFlush(retry){if(!acct)return;const a=acct;
+  try{await backend.set(a.vk,a.token,await seal(a.key,vaultData()));if(acct===a)setSync('저장됨')}
+  catch(e){if(acct!==a)return;if(e.code==='network'&&!retry){setTimeout(()=>cloudFlush(true),2000);return}
+    setSync(e.code==='forbidden'?'저장 권한 없음':'저장 실패 · 다시 저장하려면 아무 설정이나 바꿔 주세요',true)}}
+function enterAccount(id,vk,key,token,data,keep){
+  acct={id,vk,key,token};
+  if(data&&validClasses(data.classes)){state.classes=data.classes;state.cur=data.classes.some(k=>k.id===data.cur)?data.cur:data.classes[0].id}
+  closeClsPanels();loadClass(state.cur);renderAcct();
+  if(keep)crypto.subtle.exportKey('raw',key).then(raw=>{try{localStorage.setItem(ACCT_KEY,JSON.stringify({id,vk,token,k:toB64(raw)}))}catch(e){}});
+}
+function leaveAccount(){
+  acct=null;clearTimeout(saveTimer);try{localStorage.removeItem(ACCT_KEY)}catch(e){}
+  const d=store.get();state.classes=d&&validClasses(d.classes)?d.classes:[{id:uid(),name:'1반',count:35,names:'',history:[]}];
+  state.cur=d&&state.classes.some(k=>k.id===d.cur)?d.cur:state.classes[0].id;
+  closeClsPanels();loadClass(state.cur);renderAcct();say('로그아웃했어요. 이 기기에 저장된 명단으로 돌아왔어요.');
+}
+async function resumeAccount(){let s=null;try{s=JSON.parse(localStorage.getItem(ACCT_KEY)||'null')}catch(e){}
+  if(!s)return;const be=await getBackend();if(!be)return;
+  try{const key=await crypto.subtle.importKey('raw',fromB64(s.k),{name:'AES-GCM'},true,['encrypt','decrypt']);
+    const v=await be.get(s.vk,s.token);enterAccount(s.id,s.vk,key,s.token,await unseal(key,v),false)}
+  catch(e){if(e.code==='auth'||e.code==='not_found'){try{localStorage.removeItem(ACCT_KEY)}catch(_){}}}}
+
+function openLogin(){
+  $('#login').hidden=false;$('#lg-err').hidden=true;$('#lg-pw').value='';
+  getBackend().then(be=>{$('#login-fields').hidden=!be;$('#login-off').hidden=!!be;if(be)$('#lg-id').focus()});
+}
+function closeLogin(){$('#login').hidden=true;$('#lg-pw').value=''}
+function lgErr(t){const e=$('#lg-err');e.textContent=t;e.hidden=false}
+async function doLogin(signup){
+  const id=normId($('#lg-id').value),pw=$('#lg-pw').value,keep=$('#lg-keep').checked;
+  if(id.length<2)return lgErr('아이디를 두 글자 이상 입력해 주세요.');
+  if(/\s/.test(id))return lgErr('아이디에는 띄어쓰기를 쓸 수 없어요.');
+  if(pw.length<4)return lgErr('비밀번호를 네 글자 이상 입력해 주세요.');
+  const be=await getBackend();if(!be)return;
+  const btns=[$('#lg-login'),$('#lg-signup')];btns.forEach(b=>b.disabled=true);$('#lg-err').hidden=true;$('#lg-busy').hidden=false;
+  try{
+    const vk=await vaultKey(id),info=await be.salt(vk);
+    if(signup){
+      if(info.exists)return lgErr(errText.exists);
+      const salt=crypto.getRandomValues(new Uint8Array(16)),{key,token}=await deriveCreds(id,pw,salt);
+      await be.create(vk,toB64(salt),token,await seal(key,vaultData()));
+      closeLogin();enterAccount(id,vk,key,token,null,keep);say(`${id} 계정을 만들었어요. 지금 반 목록이 이 계정에 저장됐어요.`);
+    }else{
+      if(!info.exists)return lgErr(errText.not_found);
+      const {key,token}=await deriveCreds(id,pw,fromB64(info.salt)),v=await be.get(vk,token);
+      closeLogin();enterAccount(id,vk,key,token,await unseal(key,v),keep);say(`${id} 님, 반 목록을 불러왔어요.`);
+    }
+  }catch(e){lgErr(errText[e&&e.code]||errText.server)}
+  finally{btns.forEach(b=>b.disabled=false);$('#lg-busy').hidden=true}
+}
+$('#acct-btn').addEventListener('click',()=>{if(busy)return;acct?leaveAccount():openLogin()});
+$('#login-form').addEventListener('submit',e=>{e.preventDefault();doLogin(false)});
+$('#lg-signup').addEventListener('click',()=>doLogin(true));
+$('#lg-close').addEventListener('click',closeLogin);$('#lg-close2').addEventListener('click',closeLogin);
+$('#login').addEventListener('click',e=>{if(e.target.id==='login')closeLogin()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#login').hidden)closeLogin()});
+
+
 /* ---------- boot ---------- */
 const saved=store.get();
 // older saves held a single roster: carry it over as the first class
@@ -1020,7 +1235,7 @@ state.classes=saved&&Array.isArray(saved.classes)&&saved.classes.length?saved.cl
 state.cur=saved&&state.classes.some(k=>k.id===saved.cur)?saved.cur:state.classes[0].id;
 if(saved){state.exclude=saved.exclude!==false;state.rank=saved.rank||'1';$('#exclude').checked=state.exclude}
 state.mode=saved&&['dice','marble','pool'].includes(saved.mode)?saved.mode:'sphere';
-loadClass(state.cur);resize();
+loadClass(state.cur);renderAcct();resize();resumeAccount();
 requestAnimationFrame(frame);
 </script>
 </body>
